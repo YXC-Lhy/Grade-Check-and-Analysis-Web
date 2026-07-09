@@ -180,6 +180,9 @@ def _frontend_file(name: str) -> str:
 def _root() -> FileResponse:
     return FileResponse(_frontend_file("login.html"))
 
+@app.get("/favicon.ico", include_in_schema=False)
+def _login_page() -> FileResponse:
+    return FileResponse(_frontend_file("favicon.ico"))
 
 @app.get("/login.html", include_in_schema=False)
 def _login_page() -> FileResponse:
