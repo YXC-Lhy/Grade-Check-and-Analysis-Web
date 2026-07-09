@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>成绩分析站 · 导入</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=ZCOOL+XiaoWei&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg0: #070a12;
+        --bg1: #0b1222;
+        --card: rgba(255, 255, 255, 0.06);
+        --card2: rgba(255, 255, 255, 0.1);
+        --line: rgba(255, 255, 255, 0.14);
+        --text: rgba(255, 255, 255, 0.88);
+        --muted: rgba(255, 255, 255, 0.62);
+        --soft: rgba(255, 255, 255, 0.08);
+        --brand: #6ee7ff;
+        --brand2: #4ea0ff;
+        --warn: #ffd08a;
+        --danger: #ff6b7a;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+        --radius: 22px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(1200px 600px at 20% 10%, rgba(110, 231, 255, 0.16), transparent 60%),
+          radial-gradient(900px 540px at 86% 12%, rgba(78, 160, 255, 0.16), transparent 55%),
+          radial-gradient(1100px 720px at 60% 100%, rgba(255, 208, 138, 0.08), transparent 60%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -40px;
+        background: repeating-linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.03) 0px,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px,
+          transparent 9px
+        );
+        opacity: 0.36;
+        pointer-events: none;
+        filter: blur(0.2px);
+      }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 22px 18px 34px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .topbar {
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+        transform: translateY(10px);
+        opacity: 0;
+        animation: in 760ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+      }
+
+      @keyframes in {
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .title h1 {
+        font-family: "ZCOOL XiaoWei", serif;
+        font-weight: 400;
+        margin: 0;
+        letter-spacing: 0.6px;
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      .title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pill {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 999px;
+        padding: 8px 10px;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .btn {
+        border: 1px solid rgba(110, 231, 255, 0.28);
+        background: radial-gradient(180px 120px at 20% 20%, rgba(110, 231, 255, 0.32), transparent 60%),
+          linear-gradient(180deg, rgba(110, 231, 255, 0.18), rgba(78, 160, 255, 0.12));
+        color: rgba(255, 255, 255, 0.92);
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 160ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(110, 231, 255, 0.52);
+        box-shadow: 0 12px 40px rgba(78, 160, 255, 0.14);
+        filter: saturate(1.06);
+      }
+
+      .btn:active {
+        transform: translateY(0px);
+      }
+
+      .btn[disabled] {
+        cursor: not-allowed;
+        opacity: 0.7;
+        filter: grayscale(0.15);
+      }
+
+      .panel {
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .panel-hd {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .panel-hd h2 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .panel-bd {
+        padding: 14px 16px 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .control {
+        display: grid;
+        gap: 8px;
+      }
+
+      .control label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .input {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.22);
+        color: var(--text);
+        padding: 11px 12px;
+        outline: none;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .input:focus {
+        border-color: rgba(110, 231, 255, 0.5);
+        box-shadow: 0 0 0 4px rgba(110, 231, 255, 0.12);
+      }
+
+      .file {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        background: rgba(0, 0, 0, 0.16);
+      }
+
+      .file strong {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .file .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      @media (max-width: 760px) {
+        .row2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+      }
+
+      .bar > div {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, rgba(110, 231, 255, 0.92), rgba(78, 160, 255, 0.7));
+        box-shadow: 0 0 0 3px rgba(110, 231, 255, 0.12);
+        transition: width 120ms ease;
+      }
+
+      .status {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.86);
+        display: grid;
+        gap: 6px;
+      }
+
+      .msg {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.16);
+        padding: 10px 12px;
+        color: rgba(255, 255, 255, 0.86);
+        display: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .msg.show {
+        display: block;
+      }
+
+      .msg.ok {
+        border-color: rgba(110, 231, 255, 0.24);
+        background: rgba(110, 231, 255, 0.06);
+      }
+
+      .msg.err {
+        border-color: rgba(255, 107, 122, 0.35);
+        background: rgba(255, 107, 122, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="topline">
+          <div class="title">
+            <h1>导入成绩</h1>
+            <p>上传一次考试的 Excel（严格校验 23 列表头），并保存到数据库</p>
+          </div>
+          <div class="actions">
+            <div class="pill" id="tokenState"></div>
+            <button class="btn" id="backBtn" type="button">返回查询</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hd">
+          <h2>Excel 导入</h2>
+          <div class="pill" id="apiHint">POST /exams/import</div>
+        </div>
+        <div class="panel-bd">
+          <div class="row2">
+            <div class="control">
+              <label>考试名称（唯一）</label>
+              <input class="input" id="examName" placeholder="例如：2026-07 期中" />
+            </div>
+            <div class="control">
+              <label>考试日期</label>
+              <input class="input" id="examDate" type="date" />
+            </div>
+          </div>
+
+          <div class="file">
+            <strong>选择 Excel 文件（.xlsx）</strong>
+            <input class="input" id="fileInput" type="file" accept=".xlsx" />
+            <div class="muted" id="fileHint">未选择文件</div>
+          </div>
+
+          <div class="control">
+            <button class="btn" id="uploadBtn" type="button">开始上传</button>
+          </div>
+
+          <div class="status">
+            <div class="bar"><div id="barInner"></div></div>
+            <div class="muted" id="progressText">等待上传</div>
+            <div class="msg" id="msgBox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const BASE_URL = "";
+      const TOKEN_COOKIE = "token";
+
+      function getCookie(name) {
+        const parts = document.cookie.split(";").map((x) => x.trim());
+        for (const part of parts) {
+          if (!part) continue;
+          const idx = part.indexOf("=");
+          if (idx < 0) continue;
+          const k = decodeURIComponent(part.slice(0, idx));
+          if (k !== name) continue;
+          return decodeURIComponent(part.slice(idx + 1));
+        }
+        return "";
+      }
+
+      function eraseCookie(name) {
+        document.cookie = `${encodeURIComponent(name)}=; Max-Age=0; Path=/; SameSite=Lax`;
+      }
+
+      function requireToken() {
+        const token = getCookie(TOKEN_COOKIE);
+        if (!token) {
+          window.location.replace("/login.html");
+          return "";
+        }
+        return token;
+      }
+
+      function setProgress(pct, text) {
+        const inner = document.getElementById("barInner");
+        const t = document.getElementById("progressText");
+        const v = Math.max(0, Math.min(100, Math.round(pct)));
+        inner.style.width = `${v}%`;
+        t.textContent = text || `${v}%`;
+      }
+
+      function showMsg(text, ok) {
+        const box = document.getElementById("msgBox");
+        box.textContent = text || "";
+        box.classList.toggle("show", Boolean(text));
+        box.classList.toggle("ok", Boolean(text) && ok === true);
+        box.classList.toggle("err", Boolean(text) && ok === false);
+      }
+
+      function todayISO() {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      function boot() {
+        const token = requireToken();
+        document.getElementById("tokenState").textContent = token ? "已登录" : "未登录";
+        document.getElementById("examDate").value = todayISO();
+        document.getElementById("backBtn").addEventListener("click", () => {
+          window.location.href = "/query.html";
+        });
+        const fi = document.getElementById("fileInput");
+        fi.addEventListener("change", () => {
+          const f = fi.files && fi.files[0] ? fi.files[0] : null;
+          document.getElementById("fileHint").textContent = f ? `${f.name} · ${(f.size / (1024 * 1024)).toFixed(2)} MB` : "未选择文件";
+        });
+      }
+
+      function xhrUpload({ token, name, examDate, file }) {
+        return new Promise((resolve, reject) => {
+          const fd = new FormData();
+          fd.append("name", name);
+          fd.append("exam_date", examDate);
+          fd.append("file", file, file.name);
+
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", `${BASE_URL}/exams/import`);
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+          xhr.upload.onprogress = (evt) => {
+            if (!evt.lengthComputable) {
+              setProgress(30, "上传中…");
+              return;
+            }
+            const pct = (evt.loaded / evt.total) * 100;
+            setProgress(pct, `上传中：${Math.round(pct)}%`);
+          };
+
+          xhr.onreadystatechange = () => {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status === 401) {
+              eraseCookie(TOKEN_COOKIE);
+              window.location.replace("/login.html");
+              reject(new Error("未登录"));
+              return;
+            }
+            const ct = xhr.getResponseHeader("Content-Type") || "";
+            const isJson = ct.includes("application/json");
+            const body = xhr.responseText || "";
+            const data = isJson ? (() => { try { return JSON.parse(body); } catch { return null; } })() : null;
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(data || body);
+              return;
+            }
+            const detail = data && data.detail ? data.detail : body;
+            reject(new Error(typeof detail === "string" ? detail : JSON.stringify(detail)));
+          };
+
+          xhr.onerror = () => reject(new Error("网络错误"));
+          xhr.send(fd);
+        });
+      }
+
+      document.getElementById("uploadBtn").addEventListener("click", async () => {
+        const token = requireToken();
+        const name = document.getElementById("examName").value.trim();
+        const examDate = document.getElementById("examDate").value;
+        const fi = document.getElementById("fileInput");
+        const file = fi.files && fi.files[0] ? fi.files[0] : null;
+
+        showMsg("", true);
+        if (!name) {
+          showMsg("请填写考试名称（唯一）", false);
+          return;
+        }
+        if (!examDate) {
+          showMsg("请选择考试日期", false);
+          return;
+        }
+        if (!file) {
+          showMsg("请选择 .xlsx 文件", false);
+          return;
+        }
+
+        const btn = document.getElementById("uploadBtn");
+        btn.disabled = true;
+        setProgress(0, "准备上传…");
+
+        try {
+          const res = await xhrUpload({ token, name, examDate, file });
+          setProgress(100, "导入完成");
+          showMsg(`导入成功：${JSON.stringify(res)}`, true);
+        } catch (e) {
+          setProgress(0, "上传失败");
+          showMsg(e && e.message ? e.message : "上传失败", false);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      boot();
+    </script>
+  </body>
+</html>
+
