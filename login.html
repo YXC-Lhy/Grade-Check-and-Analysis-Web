@@ -242,7 +242,7 @@
           <div class="row">
             <button class="btn" id="submitBtn" type="submit">登录并进入查询</button>
           </div>
-          <div class="hint">
+          <div class="hint" style="display:none;">
             <span>仅在未保存 token 时可登录</span>
             <span id="tokenState"></span>
           </div>
@@ -283,7 +283,7 @@
       }
 
       function redirectToQuery() {
-        window.location.replace("/query.html");
+        window.location.replace("/home.html");
       }
 
       function boot() {

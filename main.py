@@ -197,6 +197,10 @@ def _query_page() -> FileResponse:
 @app.get("/upload.html", include_in_schema=False)
 def _upload_page() -> FileResponse:
     return FileResponse(_frontend_file("upload.html"))
+    
+@app.get("/home.html", include_in_schema=False)
+def _upload_page() -> FileResponse:
+    return FileResponse(_frontend_file("home.html"))
 
 
 @app.on_event("startup")
@@ -437,6 +441,39 @@ def student_results(seat_no: int, _: None = Depends(require_token)) -> Dict[str,
 
     return {"student": {"seat_no": int(student["seat_no"]), "name": student["name"]}, "exams": exams}
 
+@app.delete("/exams/{exam_id}")
+def delete_exam(
+    exam_id: int,
+    _: None = Depends(require_token),
+) -> Dict[str, Any]:
+    with db_conn() as conn:
+        exam = conn.execute(
+            "SELECT id, name FROM exams WHERE id = ?",
+            (exam_id,)
+        ).fetchone()
+
+        if not exam:
+            raise HTTPException(
+                status_code=404,
+                detail="考试不存在"
+            )
+
+        # 由于开启了 foreign_keys = ON
+        # 删除 exams 会自动删除 results
+        conn.execute(
+            "DELETE FROM exams WHERE id = ?",
+            (exam_id,)
+        )
+
+        conn.commit()
+
+    return {
+        "success": True,
+        "deleted_exam": {
+            "id": int(exam["id"]),
+            "name": exam["name"]
+        }
+    }
 
 @app.get("/health")
 def health() -> Dict[str, str]:

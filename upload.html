@@ -317,7 +317,7 @@
           </div>
           <div class="actions">
             <div class="pill" id="tokenState"></div>
-            <button class="btn" id="backBtn" type="button">返回查询</button>
+            <button class="btn" id="backBtn" type="button">返回主页</button>
           </div>
         </div>
       </div>
@@ -331,7 +331,7 @@
           <div class="row2">
             <div class="control">
               <label>考试名称（唯一）</label>
-              <input class="input" id="examName" placeholder="例如：2026-07 期中" />
+              <input class="input" id="examName" placeholder="例如：高二上期中考" />
             </div>
             <div class="control">
               <label>考试日期</label>
@@ -356,6 +356,180 @@
           </div>
         </div>
       </div>
+        <div class="panel">
+          <div class="panel-hd">
+            <h2>删除考试</h2>
+            <div class="pill">DELETE /exams/{id}</div>
+          </div>
+
+          <div class="panel-bd">
+
+            <div id="examDeleteList" class="status">
+              正在加载考试列表...
+            </div>
+
+            <div class="msg" id="deleteMsg"></div>
+
+          </div>
+        </div>
+        <style>.exam-delete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.16);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+.exam-delete-item:hover {
+  transform: translateY(-2px);
+  border-color:rgba(110,231,255,0.4);
+  background:rgba(255,255,255,0.08);
+}
+.exam-info {
+  display: grid;
+  gap: 4px;
+}
+.exam-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+.exam-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+.delete-btn {
+  border: 1px solid rgba(255,107,122,0.4);
+  background:rgba(255,107,122,0.12);
+  color:rgba(255,255,255,0.9);
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+.delete-btn:hover {
+  transform:translateY(-1px);
+  background:rgba(255,107,122,0.22);
+}</style>
+<script>async function loadExamDeleteList() {
+  const token = requireToken();
+  const box =
+    document.getElementById("examDeleteList");
+  try {
+    const res = await fetch(
+      `${BASE_URL}/meta`,
+      {
+        headers:{
+          "Authorization":
+            `Bearer ${token}`
+        }
+      }
+    );
+    if(res.status === 401){
+      eraseCookie(TOKEN_COOKIE);
+      window.location.replace("/login.html");
+      return;
+    }
+    const data =
+      await res.json();
+    box.innerHTML = "";
+    if(!data.exams || data.exams.length === 0){
+      box.textContent =
+        "暂无考试";
+      return;
+    }
+    data.exams.forEach(exam=>{
+      const item =
+        document.createElement("div");
+      item.className =
+        "exam-delete-item";
+      item.innerHTML = `
+        <div class="exam-info">
+          <div class="exam-name">
+            ${exam.name}
+          </div>
+          <div class="exam-date">
+            日期：${exam.exam_date}
+            · ID:${exam.id}
+          </div>
+        </div>
+        <button
+          class="delete-btn"
+          data-id="${exam.id}"
+          data-name="${exam.name}">
+          删除
+        </button>
+      `;
+      item
+      .querySelector(".delete-btn")
+      .addEventListener(
+        "click",
+        deleteExam
+      );
+      box.appendChild(item);
+    });
+  }catch(e){
+    box.textContent =
+      "考试列表加载失败";
+  }
+}
+async function deleteExam(e){
+  const btn = e.currentTarget;
+  const id = btn.dataset.id;
+  const name =btn.dataset.name;
+  const ok =
+    confirm(
+      `确认删除考试：${name}？\n\n删除后所有成绩数据都会永久删除，无法恢复。`
+    );
+  if(!ok)
+    return;
+  const token =requireToken();
+  const msg =document.getElementById("deleteMsg");
+  try{
+    btn.disabled = true;
+    const res =
+      await fetch(
+        `${BASE_URL}/exams/${id}`,
+        {
+          method:"DELETE",
+          headers:{
+            "Authorization":
+              `Bearer ${token}`
+          }
+        }
+      );
+    if(res.status===401){
+      eraseCookie(TOKEN_COOKIE);
+      window.location.replace("/login.html");
+      return;
+    }
+    const data =
+      await res.json();
+    if(!res.ok){
+      throw new Error(
+        data.detail || "删除失败"
+      );
+    }
+    msg.textContent =
+      `删除成功：${name}`;
+    msg.className =
+      "msg show ok";
+    await loadExamDeleteList();
+  }catch(err){
+    msg.textContent =
+      err.message || "删除失败";
+    msg.className =
+      "msg show err";
+  }
+}</script>
+      
     </div>
 
     <script>
@@ -413,11 +587,12 @@
       }
 
       function boot() {
+        loadExamDeleteList();
         const token = requireToken();
         document.getElementById("tokenState").textContent = token ? "已登录" : "未登录";
         document.getElementById("examDate").value = todayISO();
         document.getElementById("backBtn").addEventListener("click", () => {
-          window.location.href = "/query.html";
+          window.location.href = "/home.html";
         });
         const fi = document.getElementById("fileInput");
         fi.addEventListener("change", () => {
